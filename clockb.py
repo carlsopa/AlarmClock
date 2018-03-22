@@ -1,23 +1,22 @@
 import RPi.GPIO as GPIO
 from time import *
 from datetime import datetime, date, time
-from Adafruit_LED_Backpack import SevenSegment
-import os
-import sys
-import subprocess
-import paho.mqtt.client as mqtt
+import SevenSegment
+import lcd as LCD
+import os, sys, subprocess, paho.mqtt.client as mqtt
+
 
 Bedroom_Lights = '192.168.1.172'
 serverport = 5000
 client = mqtt.Client()
-Hour = 24
-Min = 25
-Alarm = 18
+Hour = 17
+Min = 27
+Alarm = 22
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(Hour, GPIO.IN)
 GPIO.setup(Min, GPIO.IN)
 GPIO.setup(Alarm, GPIO.IN)
-
+lcd = LCD.LcdDisplay()
 face = SevenSegment.SevenSegment()
 face.begin()
 face.set_brightness(0)
@@ -41,7 +40,7 @@ class AlarmClock:
         self.Time = time(self.Hour, self.Minute)
     
     def __init__(self, h, m, a):
-        client.connect(Bedroom_Lights,1883)
+        
         client.loop_start()
         self.Hour = h
         self.Minute = m
@@ -50,7 +49,7 @@ class AlarmClock:
 
     def HourIncrease(self):
         if (self.Hour > 23):
-            self.Hour = 1
+            self.Hour = 0
         else:
             self.Hour +=1
 
@@ -64,7 +63,7 @@ class AlarmClock:
         return self.Hour
 
     def MinuteIncrease(self):
-        if (self.Minute > 60):
+        if (self.Minute > 59):
             self.Minute = 0
         else:
             self.Minute +=1
@@ -87,7 +86,7 @@ class AlarmClock:
             for i, ch in enumerate(str(h)):
                 face.set_digit(pos,ch)
                 pos += 1
-        #face.write_display()
+        face.write_display()
 
     def DisplayMinute(self, m):
         pos = 2
@@ -98,7 +97,7 @@ class AlarmClock:
             for i, ch in enumerate(str(m)):
                 face.set_digit(pos,ch)
                 pos += 1
-        #face.write_display()
+        face.write_display()
 
     def SetAlarmTime(self,h,m):
         self.Time = time(h, m)
@@ -113,38 +112,62 @@ class AlarmClock:
         self.DisplayHour(self.CurrentHour)
         self.DisplayMinute(self.CurrentMinute)
         face.write_display()
-        #print(face.readRaw8)
 
     def PrintTime(self):
         return time(self.CurrentHour, self.CurrentMinute)
 
-    def SetAlarm(self):
+    def AlarmOnOff(self):
+        #print('AlarmOnOff')
+        #print(self.Alarm)
         if (self.Alarm == True):
             self.Alarm = False
-            print('alarm off')
+            lcd.Print('Alarm Off')
+            print('Alarm Off')
         else:
             self.Alarm = True
-            print('alarm on')
+            lcd.Print('Alarm On')
+            print('Alarm on')
+            
+    def SetAlarm(self):
+        #sleep(5)
+        #print('SetAlarm')
+        ax = 0
+        while(ax == 0):
+            self.AlarmTimerSet()
+            sleep(.25)
+            if (GPIO.input(Alarm) == False):
+                print('SetAlarm False')
+                self.SetAlarmTime(self.GetHour(),self.GetMinute())
+                face.set_blink(0x00)
+                ax = 1
 
     def GetAlarmStatus(self):
         return self.Alarm
 
     def AlarmTimerSet(self):
-        face.clear()
         face.set_blink(0x04)
+        self.DisplayHour(self.Hour)
+        self.DisplayMinute(self.Minute)
         if (GPIO.input(Hour) == False):
             self.HourIncrease()
             self.DisplayHour(self.Hour)
             sleep(0.1)
-            print(self.GetHour())
         if (GPIO.input(Min) == False):
             self.MinuteIncrease()
             self.DisplayMinute(self.Minute)
             sleep(0.1)
-            print(self.GetMinute())
         if (GPIO.input(Alarm) == False):
             self.SetAlarm()
             print('alarm false')
+
+    def EnterAlarmSet(self):
+        print('EnterAlarmSet')
+        sleep(3)
+        if (GPIO.input(Alarm) == False):
+            self.SetAlarm()
+        else:
+            #print('AlarmSet else')
+            self.AlarmOnOff()
 
     def Snooze(self):
         subprocess.check_output('mpc stop', shell=True, stderr=subprocess.STDOUT,
@@ -158,15 +181,11 @@ class AlarmClock:
         NewMin = self.GetMinute() + 5
         if NewMin>59:
             self.HourIncrease()
-            print(NewMin-60)
             NewMin = NewMin-60
         self.SetMinute(NewMin)
-        print(NewMin)
         NewHour = self.GetHour()
-        #print(NewMin)
         self.SetAlarmTime(NewHour,NewMin)
         print('New: ',self.PrintAlarm())
-        #sleep(30)
 
     def AlarmBoom(self):
         print('help')

@@ -4,8 +4,8 @@ import sys
 import subprocess
 from lcd import *
 
-Play = 20
-Prev = 21
+Play = 12
+Prev = 20
 Next = 16
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(Play, GPIO.IN)
@@ -30,7 +30,8 @@ class MusicPlayer:
     def Play(self):
             cmd = subprocess.check_output('mpc play ' + str(self.CurrentChannel), shell=True, stderr=subprocess.STDOUT,
                                     universal_newlines=True)
-            lcd.Display(cmd)
+            print(cmd)
+            #lcd.Display(cmd)
 
     def Stop(self):
             subprocess.check_output('mpc stop', shell=True, stderr=subprocess.STDOUT,
