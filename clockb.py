@@ -30,6 +30,7 @@ class AlarmClock:
     AlarmTime = time(Hour, Minute)
     CurrentHour = 10
     CurrentMinute = 30
+    SetStatus = 'Inactive'
     
     def __init__(self):
         client.connect(Bedroom_Lights,1883)
@@ -38,6 +39,7 @@ class AlarmClock:
         self.Minute = 30
         self.Alarm = True
         self.Time = time(self.Hour, self.Minute)
+        self.SetStatus = 'Inactive'
     
     def __init__(self, h, m, a):
         
@@ -46,6 +48,7 @@ class AlarmClock:
         self.Minute = m
         self.Alarm = a
         self.Time = time(h, m)
+        self.SetStatus = 'Inactive'
 
     def HourIncrease(self):
         if (self.Hour > 23):
@@ -129,17 +132,10 @@ class AlarmClock:
             print('Alarm on')
             
     def SetAlarm(self):
-        #sleep(5)
-        #print('SetAlarm')
-        ax = 0
-        while(ax == 0):
+        sleep(2)
+        while(self.SetStatus == 'Active'):
             self.AlarmTimerSet()
             sleep(.25)
-            if (GPIO.input(Alarm) == False):
-                print('SetAlarm False')
-                self.SetAlarmTime(self.GetHour(),self.GetMinute())
-                face.set_blink(0x00)
-                ax = 1
 
     def GetAlarmStatus(self):
         return self.Alarm
@@ -157,14 +153,18 @@ class AlarmClock:
             self.DisplayMinute(self.Minute)
             sleep(0.1)
         if (GPIO.input(Alarm) == False):
-            self.SetAlarm()
+            #self.SetAlarm()
+            self.SetAlarmTime(self.GetHour(),self.GetMinute())
+            face.set_blink(0x00)
+            self.SetStatus = 'Inactive'
             print('alarm false')
 
     def EnterAlarmSet(self):
-        print('EnterAlarmSet')
         sleep(3)
         if (GPIO.input(Alarm) == False):
-            self.SetAlarm()
+            self.SetStatus = 'Active'
+            while(self.SetStatus == 'Active'):
+                self.SetAlarm()
         else:
             #print('AlarmSet else')
             self.AlarmOnOff()
