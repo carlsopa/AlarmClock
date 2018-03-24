@@ -188,8 +188,13 @@ class AlarmClock:
         print('New: ',self.PrintAlarm())
 
     def AlarmBoom(self):
-        print('help')
+        #print('help')
+        client = mqtt.Client()
+        client.connect(Bedroom_Lights,1883)
+        client.loop_start()
+        client.publish('/Apartment/Bedroom/Lights','Left')
+        client.publish('/Apartment/Bedroom/Lights','Right')
         subprocess.check_output('mpc play', shell=True, stderr=subprocess.STDOUT,
                                 universal_newlines=True)
-        client.publish('bedroom/lights','')
-
+        #client.publish('/Apartment/Bedroom/Lights','Left')
+        #client.publish('/Apartment/Bedroom/Lights'.'Right')
