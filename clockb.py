@@ -31,6 +31,7 @@ class AlarmClock:
     CurrentHour = 10
     CurrentMinute = 30
     SetStatus = 'Inactive'
+    self.AlarmStatus = 'Inactive'
     
     def __init__(self):
         client.connect(Bedroom_Lights,1883)
@@ -40,6 +41,7 @@ class AlarmClock:
         self.Alarm = True
         self.Time = time(self.Hour, self.Minute)
         self.SetStatus = 'Inactive'
+        self.AlarmStatus = 'Inactive'
     
     def __init__(self, h, m, a):
         
@@ -49,6 +51,7 @@ class AlarmClock:
         self.Alarm = a
         self.Time = time(h, m)
         self.SetStatus = 'Inactive'
+        self.AlarmStatus = 'Inactive'
 
     def HourIncrease(self):
         if (self.Hour > 23):
@@ -188,13 +191,21 @@ class AlarmClock:
         print('New: ',self.PrintAlarm())
 
     def AlarmBoom(self):
-        #print('help')
-        client = mqtt.Client()
-        client.connect(Bedroom_Lights,1883)
-        client.loop_start()
-        client.publish('/Apartment/Bedroom/Lights','Left')
-        client.publish('/Apartment/Bedroom/Lights','Right')
+        #print(self.PrintTime())
+        #print(self.Time)
+        active = False
+        if (self.PrintTime() == self.Time and self.AlarmStatus != True):
+            self.LightControl()
+            active = True
+        if self.PrintTime() != self.Time:
+            active = False
+        #client = mqtt.Client()
+        #client.connect(Bedroom_Lights,1883)
+        #client.publish('/Apartment/Bedroom/Lights','Left')
+        #client.publish('/Apartment/Bedroom/Lights','Right')
         subprocess.check_output('mpc play', shell=True, stderr=subprocess.STDOUT,
                                 universal_newlines=True)
         #client.publish('/Apartment/Bedroom/Lights','Left')
         #client.publish('/Apartment/Bedroom/Lights'.'Right')
+    def LightControl(self):
+        print('help')
