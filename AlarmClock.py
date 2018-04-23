@@ -78,9 +78,9 @@ while True:
         print('alarm set button')
         Alrm1.EnterAlarmSet()
 
-    if (Alrm1.PrintTime() == Alrm1.Time):
+#    if (Alrm1.PrintTime() == Alrm1.Time):
 #        xx=1
-        Alrm1.AlarmBoom()
+    Alrm1.AlarmBoom()
 #    if (Alrm1.PrintTime() != Alrm1.Time):
 #        xx=0
     if (GPIO.input(Snooze) == False):
